@@ -122,6 +122,14 @@ export function useConvertLead() {
   });
 }
 
+export function usePipeline() {
+  return useQuery({
+    queryKey: ['pipeline'],
+    queryFn: () => api.get<any>('/pipeline'),
+    refetchInterval: 5000, // auto-refresh every 5s
+  });
+}
+
 export function useEmailPreview(leadId: string | null) {
   return useQuery({
     queryKey: ['preview', leadId],

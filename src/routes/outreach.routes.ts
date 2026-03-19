@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import { outreachRepo } from '../db/index.js';
 import { apiKeyAuth } from '../middleware/api-key-auth.js';
 import { prisma } from '../lib/prisma.js';
+import { redis } from '../lib/redis.js';
+import { Queue } from 'bullmq';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -91,6 +93,71 @@ export default async function outreachRoutes(app: FastifyInstance) {
       totalClicks,
       totalBounces,
       totalReplies,
+    });
+  });
+
+  /* GET /pipeline — pipeline status: queue depths + lead stats */
+  app.get('/pipeline', async (_request, reply) => {
+    const connection = redis as any;
+    const queueNames = ['source', 'enrich', 'qualify', 'outreach'] as const;
+
+    const queues: Record<string, Record<string, number>> = {};
+    for (const name of queueNames) {
+      const q = new Queue(name, { connection });
+      queues[name] = await q.getJobCounts('active', 'waiting', 'completed', 'failed', 'delayed');
+    }
+
+    // Lead stats with email/website counts
+    const leadStats = await prisma.$queryRawUnsafe<Array<{
+      status: string;
+      count: bigint;
+      with_email: bigint;
+      with_website: bigint;
+    }>>(`
+      SELECT
+        status,
+        count(*) as count,
+        count(*) FILTER (WHERE email IS NOT NULL) as with_email,
+        count(*) FILTER (WHERE website_url IS NOT NULL) as with_website
+      FROM leads
+      GROUP BY status
+      ORDER BY count DESC
+    `);
+
+    // Recent errors
+    const recentErrors = await prisma.lead.findMany({
+      where: { lastError: { not: null } },
+      select: { id: true, businessName: true, status: true, lastError: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 10,
+    });
+
+    // Recent leads (last 20 processed)
+    const recentActivity = await prisma.lead.findMany({
+      select: {
+        id: true,
+        businessName: true,
+        status: true,
+        email: true,
+        googleRating: true,
+        googleReviewCount: true,
+        updatedAt: true,
+        qualification: { select: { fitScore: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 20,
+    });
+
+    return reply.send({
+      queues,
+      leadStats: leadStats.map(r => ({
+        status: r.status,
+        count: Number(r.count),
+        withEmail: Number(r.with_email),
+        withWebsite: Number(r.with_website),
+      })),
+      recentErrors,
+      recentActivity,
     });
   });
 }

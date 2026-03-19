@@ -69,20 +69,22 @@ export default function CampaignsPage() {
               <input
                 value={vertical}
                 onChange={(e) => setVertical(e.target.value)}
-                placeholder="dental"
+                placeholder="dental clinic"
                 className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
                 required
               />
+              <p className="text-[10px] text-gray-500 mt-1">Use Google Maps search terms: "dental clinic", "law firm", "real estate agent", "hair salon", "veterinary clinic"</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Regions (comma-separated)</label>
               <input
                 value={regions}
                 onChange={(e) => setRegions(e.target.value)}
-                placeholder="Belo Horizonte, Sao Paulo"
+                placeholder="London UK, Dubai UAE, São Paulo Brazil"
                 className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
                 required
               />
+              <p className="text-[10px] text-gray-500 mt-1">Use "City Country" format for best results: "Miami US", "London UK", "Dubai UAE", "São Paulo Brazil"</p>
             </div>
           </div>
           <div className="flex gap-3">
