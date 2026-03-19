@@ -3,54 +3,139 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Email</title>
+  <title>SigmaAI</title>
 </head>
-<body style="margin:0; padding:0; background-color:#f7f7f7; font-family:Arial, Helvetica, sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;">
+<body style="margin:0; padding:0; background-color:#0A0F1C; font-family:'Inter', Arial, Helvetica, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0F1C;">
     <tr>
       <td align="center" style="padding:40px 20px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; max-width:600px; width:100%;">
-          <!-- Body -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%;">
+
+          <!-- Logo -->
           <tr>
-            <td style="padding:32px 40px; color:#1a1a1a; font-size:16px; line-height:1.6;">
-              <p style="margin:0 0 20px;">{{personalized_hook}}</p>
+            <td align="center" style="padding:0 0 32px;">
+              <span style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; font-weight:700; color:#22D3EE; letter-spacing:-0.5px;">Sigma<span style="color:#FFFFFF;">AI</span></span>
+            </td>
+          </tr>
 
-              <p style="margin:0 0 20px;">
-                I put together a short demo showing how {{business_name}} could
-                automate the tasks that eat up your team's time — without
-                changing anything about how you work today.
-              </p>
+          <!-- Main Card -->
+          <tr>
+            <td style="background-color:#1E293B; border-radius:12px; border:1px solid #334155; overflow:hidden;">
 
-              <p style="margin:0 0 28px;">
-                Take a look when you have two minutes:
-              </p>
+              <!-- Personalized Hook -->
+              <tr>
+                <td style="padding:40px 40px 0; color:#FFFFFF; font-size:16px; line-height:1.7;">
+                  <p style="margin:0 0 24px; color:#E2E8F0;">{{personalized_hook}}</p>
+                </td>
+              </tr>
+
+              <!-- What SigmaAI Does Section -->
+              <tr>
+                <td style="padding:8px 40px 0;">
+                  <p style="margin:0 0 20px; color:#B0BEC5; font-size:15px; line-height:1.6;">
+                    SigmaAI is an AI assistant that connects to your WhatsApp and handles customer conversations — instantly, accurately, and 24/7.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Feature Grid -->
+              <tr>
+                <td style="padding:8px 40px 0;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <!-- Row 1 -->
+                    <tr>
+                      <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F172A; border-radius:8px; border:1px solid #334155;">
+                          <tr>
+                            <td style="padding:16px;">
+                              <div style="font-size:20px; margin-bottom:6px;">&#9889;</div>
+                              <div style="color:#22D3EE; font-size:13px; font-weight:600; margin-bottom:4px;">Instant Replies</div>
+                              <div style="color:#B0BEC5; font-size:12px; line-height:1.4;">Answers customer questions in seconds, not hours</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F172A; border-radius:8px; border:1px solid #334155;">
+                          <tr>
+                            <td style="padding:16px;">
+                              <div style="font-size:20px; margin-bottom:6px;">&#128197;</div>
+                              <div style="color:#22D3EE; font-size:13px; font-weight:600; margin-bottom:4px;">Auto Booking</div>
+                              <div style="color:#B0BEC5; font-size:12px; line-height:1.4;">Books appointments directly into your calendar</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <!-- Row 2 -->
+                    <tr>
+                      <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F172A; border-radius:8px; border:1px solid #334155;">
+                          <tr>
+                            <td style="padding:16px;">
+                              <div style="font-size:20px; margin-bottom:6px;">&#127911;</div>
+                              <div style="color:#22D3EE; font-size:13px; font-weight:600; margin-bottom:4px;">Voice & Images</div>
+                              <div style="color:#B0BEC5; font-size:12px; line-height:1.4;">Understands voice messages and analyzes photos</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F172A; border-radius:8px; border:1px solid #334155;">
+                          <tr>
+                            <td style="padding:16px;">
+                              <div style="font-size:20px; margin-bottom:6px;">&#128171;</div>
+                              <div style="color:#22D3EE; font-size:13px; font-weight:600; margin-bottom:4px;">24/7 Coverage</div>
+                              <div style="color:#B0BEC5; font-size:12px; line-height:1.4;">Never miss a lead — even nights and weekends</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
               <!-- CTA -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
-                <tr>
-                  <td align="center" style="background-color:#22D3EE; border-radius:6px;">
-                    <a href="{{demo_url}}" target="_blank" style="display:inline-block; padding:14px 32px; color:#ffffff; text-decoration:none; font-weight:bold; font-size:16px;">
-                      Watch the Demo
-                    </a>
-                  </td>
-                </tr>
-              </table>
+              <tr>
+                <td align="center" style="padding:28px 40px 12px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td align="center" style="background-color:#22D3EE; border-radius:8px;">
+                        <a href="{{demo_url}}" target="_blank" style="display:inline-block; padding:14px 36px; color:#0A0F1C; text-decoration:none; font-weight:700; font-size:15px;">
+                          See How It Works for {{business_name}} &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-              <p style="margin:0;">
-                Happy to answer any questions — just hit reply.
-              </p>
+              <!-- Soft close -->
+              <tr>
+                <td style="padding:8px 40px 36px;">
+                  <p style="margin:0; color:#B0BEC5; font-size:14px; text-align:center;">
+                    Takes 30 seconds. No signup required.
+                  </p>
+                </td>
+              </tr>
+
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 40px; border-top:1px solid #e5e5e5; color:#999999; font-size:12px; line-height:1.5;">
-              <p style="margin:0 0 8px;">{{physical_address}}</p>
+            <td style="padding:28px 40px 0; color:#64748B; font-size:11px; line-height:1.5; text-align:center;">
+              <p style="margin:0 0 6px;">
+                <a href="https://appai.sigmaintel.io" style="color:#22D3EE; text-decoration:none;">appai.sigmaintel.io</a>
+              </p>
+              <p style="margin:0 0 6px;">{{physical_address}}</p>
               <p style="margin:0;">
-                <a href="{{unsubscribe_url}}" style="color:#999999; text-decoration:underline;">Unsubscribe</a>
+                <a href="{{unsubscribe_url}}" style="color:#64748B; text-decoration:underline;">Unsubscribe</a>
               </p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
