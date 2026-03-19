@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{business_name}} — AI Assistant Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #e5ddd5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background-color: #075e54;
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #128c7e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .header-info h1 {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .header-info p {
+      font-size: 12px;
+      opacity: 0.85;
+      line-height: 1.2;
+    }
+
+    /* ---- Chat area ---- */
+    .chat {
+      flex: 1;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bubble {
+      max-width: 82%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.45;
+      position: relative;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .bubble-sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+      border-top-right-radius: 0;
+    }
+
+    .bubble-received {
+      align-self: flex-start;
+      background-color: #ffffff;
+      border-top-left-radius: 0;
+    }
+
+    .bubble-time {
+      display: block;
+      text-align: right;
+      font-size: 11px;
+      color: #999999;
+      margin-top: 4px;
+    }
+
+    .bubble-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .bubble-received .bubble-label { color: #075e54; }
+    .bubble-sent .bubble-label { color: #4a7c59; }
+
+    /* ---- CTA Section ---- */
+    .cta-section {
+      text-align: center;
+      padding: 32px 20px 24px;
+      background-color: #ffffff;
+    }
+
+    .cta-section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .cta-section p {
+      font-size: 15px;
+      color: #555555;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background-color: #25d366;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+    }
+
+    .cta-button:hover {
+      background-color: #1ebe5d;
+    }
+
+    /* ---- Disclaimer ---- */
+    .disclaimer {
+      text-align: center;
+      padding: 16px 20px 24px;
+      background-color: #ffffff;
+      border-top: 1px solid #e8e8e8;
+    }
+
+    .disclaimer p {
+      font-size: 12px;
+      color: #999999;
+      line-height: 1.4;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 480px) {
+      .bubble { max-width: 90%; font-size: 14px; }
+      .cta-section h2 { font-size: 19px; }
+      .cta-button { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">AI</div>
+    <div class="header-info">
+      <h1>{{business_name}}</h1>
+      <p>AI Assistant</p>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat">
+    <!-- Customer message -->
+    <div class="bubble bubble-sent">
+      <div class="bubble-label">Customer</div>
+      {{customer_message}}
+      <span class="bubble-time">10:30 AM</span>
+    </div>
+
+    <!-- Bot reply -->
+    <div class="bubble bubble-received">
+      <div class="bubble-label">AI Assistant</div>
+      {{bot_reply}}
+      <span class="bubble-time">10:30 AM</span>
+    </div>
+
+    <!-- Follow-up (customer) -->
+    <div class="bubble bubble-sent">
+      <div class="bubble-label">Customer</div>
+      {{follow_up}}
+      <span class="bubble-time">10:31 AM</span>
+    </div>
+
+    <!-- Bot confirm -->
+    <div class="bubble bubble-received">
+      <div class="bubble-label">AI Assistant</div>
+      {{bot_confirm}}
+      <span class="bubble-time">10:31 AM</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Get this running on your WhatsApp in 24 hours</h2>
+    <p>Respond to every customer instantly, book more appointments, and never miss a lead again.</p>
+    <a href="{{signup_url}}" class="cta-button">Get Started</a>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <p>{{disclaimer}}</p>
+  </div>
+
+</body>
+</html>
