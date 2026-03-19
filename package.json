@@ -24,6 +24,7 @@
     "groq-sdk": "^1.1.1",
     "ioredis": "^5.10.0",
     "openai": "^6.32.0",
+    "outscraper": "^2.2.2",
     "pg": "^8.20.0"
   },
   "devDependencies": {
