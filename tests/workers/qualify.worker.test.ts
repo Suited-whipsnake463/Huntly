@@ -184,8 +184,8 @@ describe('qualify worker', () => {
 
     expect(mockLeadRepo.updateStatus).toHaveBeenCalledWith('lead-1', 'qualified');
     expect(mockOutreachQueueAdd).toHaveBeenCalledWith(
-      'outreach-lead',
-      { leadId: 'lead-1' },
+      'send-drip',
+      { leadId: 'lead-1', sequenceNumber: 1 },
       { jobId: 'outreach-lead-1' },
     );
   });
@@ -369,8 +369,8 @@ describe('qualify worker', () => {
     await capturedProcessor(makeJob('lead-1'));
 
     expect(mockOutreachQueueAdd).toHaveBeenCalledWith(
-      'outreach-lead',
-      { leadId: 'lead-1' },
+      'send-drip',
+      { leadId: 'lead-1', sequenceNumber: 1 },
       { jobId: 'outreach-lead-1' },
     );
   });

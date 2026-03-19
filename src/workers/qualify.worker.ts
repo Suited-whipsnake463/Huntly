@@ -94,7 +94,7 @@ export const qualifyWorker = new Worker<QualifyJobData>(
 
     if (result.fitScore >= 70) {
       // Auto-approve: enqueue outreach
-      await outreachQueue.add('outreach-lead', { leadId }, {
+      await outreachQueue.add('send-drip', { leadId, sequenceNumber: 1 }, {
         jobId: `outreach-${leadId}`,
       });
     }

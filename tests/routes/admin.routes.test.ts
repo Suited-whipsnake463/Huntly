@@ -355,8 +355,8 @@ describe('Lead routes', () => {
 
     expect(res.statusCode).toBe(200);
     expect(mockOutreachQueueAdd).toHaveBeenCalledWith(
-      'outreach-lead',
-      { leadId: 'lead-001' },
+      'send-drip',
+      { leadId: 'lead-001', sequenceNumber: 1 },
       { jobId: 'outreach-lead-001' },
     );
   });

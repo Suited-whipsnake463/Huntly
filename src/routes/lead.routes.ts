@@ -110,8 +110,8 @@ export default async function leadRoutes(app: FastifyInstance) {
       const { outreachQueue } = await import('../workers/qualify.worker.js');
 
       await outreachQueue.add(
-        'outreach-lead',
-        { leadId: lead.id },
+        'send-drip',
+        { leadId: lead.id, sequenceNumber: 1 },
         { jobId: `outreach-${lead.id}` },
       );
 
