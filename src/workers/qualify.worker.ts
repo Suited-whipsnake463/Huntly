@@ -92,15 +92,8 @@ export const qualifyWorker = new Worker<QualifyJobData>(
       return;
     }
 
-    if (result.fitScore >= 70) {
-      // Auto-approve: enqueue outreach
-      await outreachQueue.add('send-drip', { leadId, sequenceNumber: 1 }, {
-        jobId: `outreach-${leadId}`,
-      });
-    }
-
-    // fitScore 40-69: qualified, manual review (no outreach enqueue)
-    // fitScore < 40: qualified, auto-skip (no outreach enqueue)
+    // All qualified leads wait for manual approval in dashboard.
+    // User clicks "Send" or "Skip" per lead.
   },
   {
     connection,

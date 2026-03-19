@@ -2,6 +2,17 @@ import type { FastifyInstance } from 'fastify';
 import { leadRepo } from '../db/index.js';
 import { apiKeyAuth } from '../middleware/api-key-auth.js';
 import { prisma } from '../lib/prisma.js';
+import { renderTemplate } from '../services/email.service.js';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { env } from '../config.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEmailTemplate(name: string): string {
+  return readFileSync(resolve(__dirname, `../templates/emails/${name}.html`), 'utf-8');
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -80,7 +91,7 @@ export default async function leadRoutes(app: FastifyInstance) {
     return reply.send(lead);
   });
 
-  /* POST /leads/:id/approve — enqueue outreach for score 40-69 leads */
+  /* POST /leads/:id/approve — enqueue outreach for qualified leads with email */
   app.post<{ Params: LeadIdParams }>(
     '/leads/:id/approve',
     async (request, reply) => {
@@ -89,17 +100,12 @@ export default async function leadRoutes(app: FastifyInstance) {
         return reply.status(404).send({ error: 'Lead not found' });
       }
 
-      if (!lead.qualification) {
-        return reply
-          .status(400)
-          .send({ error: 'Lead has no qualification data' });
+      if (lead.status !== 'qualified') {
+        return reply.status(400).send({ error: `Lead status is '${lead.status}', must be 'qualified'` });
       }
 
-      const score = lead.qualification.fitScore;
-      if (score < 40 || score > 69) {
-        return reply
-          .status(400)
-          .send({ error: 'Approve is only for leads with score 40-69' });
+      if (!lead.qualification) {
+        return reply.status(400).send({ error: 'Lead has no qualification data' });
       }
 
       if (!lead.email) {
@@ -116,6 +122,67 @@ export default async function leadRoutes(app: FastifyInstance) {
       );
 
       return reply.send({ status: 'approved', leadId: lead.id });
+    },
+  );
+
+  /* GET /leads/:id/preview — preview what email 1 would look like */
+  app.get<{ Params: LeadIdParams }>(
+    '/leads/:id/preview',
+    async (request, reply) => {
+      const lead = await leadRepo.findById(request.params.id);
+      if (!lead) {
+        return reply.status(404).send({ error: 'Lead not found' });
+      }
+
+      const qualification = lead.qualification;
+      const enrichment = lead.enrichment;
+      const painSignals = (enrichment?.painSignals as Array<{ signal: string; count: number; example: string }>) ?? [];
+      const topSignal = painSignals[0];
+      const painCount = topSignal?.count ?? 0;
+
+      const mergeFields: Record<string, string> = {
+        business_name: lead.businessName,
+        personalized_hook: qualification?.personalizedHook ?? '',
+        demo_url: `${env.BASE_URL}/demo/${lead.demoToken}`,
+        count: String(painCount),
+      };
+
+      const unsubscribeUrl = `${env.BASE_URL}/unsubscribe/${lead.unsubscribeToken}`;
+
+      const template = loadEmailTemplate('mirror');
+      const html = renderTemplate(template, {
+        ...mergeFields,
+        unsubscribe_url: unsubscribeUrl,
+        physical_address: lead.campaign?.senderAddress ?? env.PHYSICAL_ADDRESS,
+      });
+
+      const subject = painCount > 0
+        ? `${painCount} of your customers can't reach you, ${lead.businessName}`
+        : `Are your customers reaching you, ${lead.businessName}?`;
+
+      return reply.send({
+        subject,
+        html,
+        to: lead.email,
+        from: `${env.SENDER_NAME} <${env.SENDER_EMAIL}>`,
+        lead: {
+          id: lead.id,
+          businessName: lead.businessName,
+          email: lead.email,
+          score: qualification?.fitScore,
+          reasoning: qualification?.scoreReasoning,
+          hook: qualification?.personalizedHook,
+          demoScenario: qualification?.demoPageData,
+        },
+        enrichment: {
+          hasWhatsapp: enrichment?.hasWhatsapp,
+          hasChatbot: enrichment?.hasChatbot,
+          hasOnlineBooking: enrichment?.hasOnlineBooking,
+          emailsFound: enrichment?.emailsFound,
+          painSignals,
+          sentimentSummary: enrichment?.reviewSentimentSummary,
+        },
+      });
     },
   );
 

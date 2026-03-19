@@ -122,6 +122,14 @@ export function useConvertLead() {
   });
 }
 
+export function useEmailPreview(leadId: string | null) {
+  return useQuery({
+    queryKey: ['preview', leadId],
+    queryFn: () => api.get<any>(`/leads/${leadId}/preview`),
+    enabled: !!leadId,
+  });
+}
+
 export function usePauseDrip() {
   const qc = useQueryClient();
   return useMutation({
