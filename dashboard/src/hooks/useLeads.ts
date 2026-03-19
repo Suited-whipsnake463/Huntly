@@ -86,6 +86,28 @@ export function useStats() {
   return useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get<EmailStats>('/stats'),
+    refetchInterval: 3000,
+  });
+}
+
+export interface RecentEmail {
+  id: string;
+  sequenceNumber: number;
+  subject: string;
+  status: string;
+  variant: string;
+  sentAt: string | null;
+  createdAt: string;
+  resendMessageId: string | null;
+  lead: { id: string; businessName: string; email: string };
+}
+
+export function useRecentEmails(campaignId: string | null) {
+  return useQuery({
+    queryKey: ['recent-emails', campaignId],
+    queryFn: () => api.get<RecentEmail[]>(`/campaigns/${campaignId}/emails`),
+    enabled: !!campaignId,
+    refetchInterval: 3000,
   });
 }
 

@@ -46,4 +46,4 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 await app.listen({ port: env.PORT, host: '0.0.0.0' });
-console.log(`Huntly running on port ${env.PORT}`);
+console.log(`Huntly running on port ${env.PORT} (sendNow=direct)`);

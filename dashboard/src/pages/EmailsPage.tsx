@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Mail, Eye, MousePointerClick, AlertTriangle, MessageSquare, BarChart3, TrendingUp, Send, FlaskConical } from 'lucide-react';
-import { useStats, useCampaignAnalytics, type ABTestResult } from '../hooks/useLeads';
+import { Mail, Eye, MousePointerClick, AlertTriangle, MessageSquare, BarChart3, TrendingUp, Send, FlaskConical, Clock } from 'lucide-react';
+import { useStats, useCampaignAnalytics, useRecentEmails, type ABTestResult } from '../hooks/useLeads';
 import { useCampaigns } from '../hooks/useCampaigns';
 
 const funnelSteps = ['sent', 'delivered', 'opened', 'clicked', 'replied', 'converted'] as const;
@@ -81,6 +81,9 @@ export default function EmailsPage() {
         </div>
       )}
 
+      {/* Recent emails live feed */}
+      {selectedCampaignId && <RecentEmailsFeed campaignId={selectedCampaignId} />}
+
       {/* Campaign analytics detail */}
       {selectedCampaignId && analytics && (
         <div className="space-y-5">
@@ -148,6 +151,68 @@ function MiniStat({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg border border-gray-800 bg-gray-900 px-4 py-3">
       <p className="text-[10px] uppercase tracking-wider text-gray-500">{label}</p>
       <p className="text-xl font-semibold mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+const emailStatusDot: Record<string, string> = {
+  scheduled: 'bg-gray-400',
+  sending: 'bg-yellow-400',
+  delivered: 'bg-green-400',
+  opened: 'bg-cyan-400',
+  clicked: 'bg-emerald-400',
+  bounced: 'bg-red-400',
+  failed: 'bg-red-500',
+  complained: 'bg-orange-400',
+};
+
+function RecentEmailsFeed({ campaignId }: { campaignId: string }) {
+  const { data: emails } = useRecentEmails(campaignId);
+  if (!emails || emails.length === 0) return null;
+
+  // Show last 20
+  const recent = emails.slice(0, 20);
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+        <Clock size={16} className="text-cyan-400" />
+        Recent Emails
+        <span className="text-xs text-gray-500 font-normal ml-1">(auto-refreshing)</span>
+      </h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs text-gray-500 uppercase tracking-wider">
+              <th className="text-left pb-3 pr-4">Business</th>
+              <th className="text-left pb-3 pr-4">To</th>
+              <th className="text-left pb-3 pr-4">Subject</th>
+              <th className="text-left pb-3 pr-4">Status</th>
+              <th className="text-left pb-3 pr-4">Variant</th>
+              <th className="text-right pb-3">Sent At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recent.map((email) => (
+              <tr key={email.id} className="border-t border-gray-800">
+                <td className="py-2.5 pr-4 text-gray-300 truncate max-w-[160px]">{email.lead.businessName}</td>
+                <td className="py-2.5 pr-4 text-gray-400 truncate max-w-[180px]">{email.lead.email}</td>
+                <td className="py-2.5 pr-4 text-gray-400 truncate max-w-[220px]">{email.subject}</td>
+                <td className="py-2.5 pr-4">
+                  <span className="flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${emailStatusDot[email.status] ?? 'bg-gray-500'}`} />
+                    <span className="text-gray-300">{email.status}</span>
+                  </span>
+                </td>
+                <td className="py-2.5 pr-4 text-gray-400">{email.variant}</td>
+                <td className="py-2.5 text-right text-gray-500 text-xs whitespace-nowrap">
+                  {email.sentAt ? new Date(email.sentAt).toLocaleTimeString() : '--'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
