@@ -67,6 +67,37 @@ export async function incrementSendCount(): Promise<void> {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Language detection from region                                     */
+/* ------------------------------------------------------------------ */
+
+export function detectLanguage(region: string): string {
+  const r = region.toLowerCase();
+  if (
+    r.includes('brazil') ||
+    r.includes('brasil') ||
+    r.includes('portugal') ||
+    r.includes('angola') ||
+    r.includes('moçambique') ||
+    r.includes('mocambique')
+  )
+    return 'pt';
+  if (
+    r.includes('uae') ||
+    r.includes('dubai') ||
+    r.includes('saudi') ||
+    r.includes('qatar') ||
+    r.includes('bahrain') ||
+    r.includes('kuwait') ||
+    r.includes('oman') ||
+    r.includes('egypt') ||
+    r.includes('jordan') ||
+    r.includes('lebanon')
+  )
+    return 'ar';
+  return 'en';
+}
+
+/* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -106,10 +137,11 @@ function getSubject(sequenceNumber: number, fields: MergeFields): string {
   return builder(fields);
 }
 
-function getTemplateName(sequenceNumber: number): string {
+function getTemplateName(sequenceNumber: number, lang: string): string {
   const step = DRIP_SEQUENCE.find((s) => s.sequenceNumber === sequenceNumber);
   if (!step) throw new Error(`Unknown sequence number: ${sequenceNumber}`);
-  return step.templateName;
+  // English is the default (no suffix); other languages append -lang
+  return lang === 'en' ? step.templateName : `${step.templateName}-${lang}`;
 }
 
 /** Returns true if drip should stop for this lead. */
@@ -177,10 +209,11 @@ export const outreachWorker = new Worker<SendDripJobData | Record<string, never>
       return;
     }
 
-    // 4. Build merge fields
+    // 4. Build merge fields + detect language from region
     const mergeFields = buildMergeFields(lead);
     const subject = getSubject(sequenceNumber, mergeFields);
-    const templateName = getTemplateName(sequenceNumber);
+    const lang = detectLanguage(lead.region ?? '');
+    const templateName = getTemplateName(sequenceNumber, lang);
     const unsubscribeUrl = mergeFields.unsubscribe_url;
 
     // 5. Create outreach email record (status: scheduled)

@@ -20,6 +20,8 @@ export interface QualificationInput {
   hasOnlineBooking: boolean | null;
   painSignals: Array<{ signal: string; count: number; example: string }>;
   reviewSentimentSummary: string;
+  /** ISO language code detected from region (en, pt, ar). Defaults to en. */
+  language?: string;
 }
 
 export interface QualificationResult {
@@ -66,6 +68,12 @@ Return ONLY valid JSON:
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: 'English',
+  pt: 'Portuguese',
+  ar: 'Arabic',
+};
+
 function buildUserPrompt(input: QualificationInput): string {
   const painText =
     input.painSignals.length > 0
@@ -73,6 +81,9 @@ function buildUserPrompt(input: QualificationInput): string {
           .map((p) => `${p.signal} (${p.count}x, e.g. "${p.example}")`)
           .join(', ')
       : 'None detected';
+
+  const lang = input.language ?? 'en';
+  const langLabel = LANGUAGE_LABELS[lang] ?? 'English';
 
   return `Business: ${input.businessName}
 Category: ${input.category}
@@ -82,7 +93,8 @@ Has WhatsApp: ${input.hasWhatsapp ?? 'unknown'}
 Has Chatbot: ${input.hasChatbot ?? 'unknown'}
 Has Online Booking: ${input.hasOnlineBooking ?? 'unknown'}
 Review Sentiment: ${input.reviewSentimentSummary || 'No reviews analyzed'}
-Pain Signals: ${painText}`;
+Pain Signals: ${painText}
+Language: Generate the personalized_hook and demo_scenario in ${langLabel}.`;
 }
 
 function emptyResult(businessName: string): QualificationResult {

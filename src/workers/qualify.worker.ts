@@ -2,6 +2,7 @@ import { Worker, Queue, type ConnectionOptions } from 'bullmq';
 import { redis } from '../lib/redis.js';
 import { leadRepo, qualificationRepo } from '../db/index.js';
 import { qualifyLead, type QualificationInput } from '../services/qualifier.service.js';
+import { detectLanguage } from './outreach.worker.js';
 import type { Prisma } from '@prisma/client';
 
 // Cast needed: ioredis root vs bullmq's bundled ioredis have divergent types
@@ -39,6 +40,7 @@ export const qualifyWorker = new Worker<QualifyJobData>(
         ? (enrichment.painSignals as Array<{ signal: string; count: number; example: string }>)
         : [],
       reviewSentimentSummary: enrichment?.reviewSentimentSummary ?? '',
+      language: detectLanguage(lead.region ?? ''),
     };
 
     let result;
