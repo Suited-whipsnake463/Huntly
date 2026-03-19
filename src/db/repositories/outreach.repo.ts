@@ -22,11 +22,11 @@ export const outreachRepo = {
   async updateStatus(
     id: string,
     status: EmailStatus,
-    timestamps?: { sentAt?: Date; deliveredAt?: Date; openedAt?: Date; clickedAt?: Date },
+    extra?: { sentAt?: Date; deliveredAt?: Date; openedAt?: Date; clickedAt?: Date; resendMessageId?: string },
   ) {
     return prisma.outreachEmail.update({
       where: { id },
-      data: { status, ...timestamps },
+      data: { status, ...extra },
     });
   },
 
