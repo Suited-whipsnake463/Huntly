@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CampaignStatus {
+  draft
+  active
+  paused
+  completed
+}
+
+enum LeadStatus {
+  sourced
+  enriched
+  qualified
+  contacted
+  replied
+  converted
+  unsubscribed
+}
+
+enum EmailStatus {
+  scheduled
+  sending
+  delivered
+  opened
+  clicked
+  bounced
+  failed
+  complained
+}
+
+model Campaign {
+  id                 String         @id @default(uuid())
+  name               String
+  status             CampaignStatus @default(draft)
+  vertical           String
+  regions            String[]
+  emailTemplateSetId String?        @map("email_template_set_id")
+  dripConfig         Json           @default("{}") @map("drip_config")
+  senderAddress      String?        @map("sender_address")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  leads           Lead[]
+  outreachEmails  OutreachEmail[]
+  emailTemplateSet EmailTemplateSet? @relation(fields: [emailTemplateSetId], references: [id])
+
+  @@map("campaigns")
+}
+
+model Lead {
+  id                  String     @id @default(uuid())
+  campaignId          String     @map("campaign_id")
+  businessName        String     @map("business_name")
+  category            String?
+  address             String?
+  region              String?
+  country             String?
+  phone               String?
+  websiteUrl          String?    @map("website_url")
+  email               String?
+  googleMapsPlaceId   String?    @unique @map("google_maps_place_id")
+  googleRating        Float?     @map("google_rating")
+  googleReviewCount   Int?       @map("google_review_count")
+  sourceData          Json?      @map("source_data")
+  status              LeadStatus @default(sourced)
+  hasReplied          Boolean    @default(false) @map("has_replied")
+  demoToken           String?    @unique @map("demo_token")
+  demoExpiresAt       DateTime?  @map("demo_expires_at")
+  unsubscribeToken    String?    @unique @map("unsubscribe_token")
+  lastError           String?    @map("last_error")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+
+  campaign       Campaign          @relation(fields: [campaignId], references: [id])
+  enrichment     LeadEnrichment?
+  qualification  LeadQualification?
+  outreachEmails OutreachEmail[]
+
+  @@index([campaignId])
+  @@index([status])
+  @@map("leads")
+}
+
+model LeadEnrichment {
+  leadId                 String   @id @map("lead_id")
+  hasWhatsapp            Boolean? @map("has_whatsapp")
+  hasChatbot             Boolean? @map("has_chatbot")
+  hasOnlineBooking       Boolean? @map("has_online_booking")
+  emailsFound            String[] @map("emails_found")
+  websiteTechSignals     Json?    @map("website_tech_signals")
+  reviewSentimentSummary String?  @map("review_sentiment_summary")
+  painSignals            Json?    @map("pain_signals")
+  enrichedAt             DateTime @default(now()) @map("enriched_at")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_enrichments")
+}
+
+model LeadQualification {
+  leadId           String   @id @map("lead_id")
+  fitScore         Int      @map("fit_score")
+  scoreReasoning   String   @map("score_reasoning")
+  personalizedHook String   @map("personalized_hook")
+  demoPageData     Json     @map("demo_page_data")
+  qualifiedAt      DateTime @default(now()) @map("qualified_at")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_qualifications")
+}
+
+model OutreachEmail {
+  id              String      @id @default(uuid())
+  leadId          String      @map("lead_id")
+  campaignId      String      @map("campaign_id")
+  sequenceNumber  Int         @map("sequence_number")
+  resendMessageId String?     @map("resend_message_id")
+  subject         String
+  bodyHtml        String      @map("body_html")
+  status          EmailStatus @default(scheduled)
+  scheduledFor    DateTime    @map("scheduled_for")
+  sentAt          DateTime?   @map("sent_at")
+  deliveredAt     DateTime?   @map("delivered_at")
+  openedAt        DateTime?   @map("opened_at")
+  clickedAt       DateTime?   @map("clicked_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([leadId])
+  @@index([campaignId])
+  @@index([status, scheduledFor])
+  @@map("outreach_emails")
+}
+
+model EmailTemplateSet {
+  id       String @id @default(uuid())
+  name     String
+  vertical String
+
+  templates EmailTemplate[]
+  campaigns Campaign[]
+
+  @@map("email_template_sets")
+}
+
+model EmailTemplate {
+  id              String @id @default(uuid())
+  templateSetId   String @map("template_set_id")
+  sequenceNumber  Int    @map("sequence_number")
+  subjectTemplate String @map("subject_template")
+  bodyTemplate    String @map("body_template")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  templateSet EmailTemplateSet @relation(fields: [templateSetId], references: [id], onDelete: Cascade)
+
+  @@unique([templateSetId, sequenceNumber])
+  @@map("email_templates")
+}
+
+model ExcludedClient {
+  id        String   @id @default(uuid())
+  phone     String?
+  domain    String?
+  reason    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("excluded_clients")
+}
