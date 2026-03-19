@@ -130,6 +130,33 @@ export function usePipeline() {
   });
 }
 
+export interface CampaignAnalytics {
+  total: number;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  replied: number;
+  converted: number;
+  rates: {
+    deliveryRate: number;
+    openRate: number;
+    clickRate: number;
+    bounceRate: number;
+    replyRate: number;
+    conversionRate: number;
+  };
+}
+
+export function useCampaignAnalytics(campaignId: string | null) {
+  return useQuery({
+    queryKey: ['campaign-analytics', campaignId],
+    queryFn: () => api.get<CampaignAnalytics>(`/campaigns/${campaignId}/analytics`),
+    enabled: !!campaignId,
+  });
+}
+
 export function useEmailPreview(leadId: string | null) {
   return useQuery({
     queryKey: ['preview', leadId],

@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, X, Star, Eye, ChevronDown, ChevronUp, Globe, Phone, MessageCircle, Calendar, Bot, AlertTriangle, Play, ExternalLink, Pause, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, X, Star, Eye, ChevronDown, ChevronUp, Globe, Phone, MessageCircle, Calendar, Bot, AlertTriangle, Play, ExternalLink, Pause, Trash2, MousePointerClick, Loader2 } from 'lucide-react';
 import { useCampaign, useLaunchCampaign, useStopCampaign, useDeleteCampaign } from '../hooks/useCampaigns';
-import { useLeads, useApproveLead, useSkipLead, useConvertLead, useEmailPreview, type LeadParams } from '../hooks/useLeads';
+import { useLeads, useApproveLead, useSkipLead, useConvertLead, useEmailPreview, useCampaignAnalytics, type LeadParams, type Lead } from '../hooks/useLeads';
+
+const PAGE_SIZE = 50;
 
 const statusColor: Record<string, string> = {
   active: 'bg-green-500/10 text-green-400 border-green-500/20',
@@ -22,12 +24,49 @@ const funnelStages = ['sourced', 'enriched', 'qualified', 'contacted', 'replied'
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: campaign } = useCampaign(id!);
+  const { data: analytics } = useCampaignAnalytics(id!);
   const launchMutation = useLaunchCampaign();
   const stopMutation = useStopCampaign();
   const deleteMutation = useDeleteCampaign();
   const nav = useNavigate();
   const [filter, setFilter] = useState<LeadParams>({ status: 'qualified' });
-  const { data: leads } = useLeads(id!, filter);
+
+  // Pagination state
+  const [offset, setOffset] = useState(0);
+  const [accumulated, setAccumulated] = useState<Lead[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const { data: freshLeads, isFetching } = useLeads(id!, { ...filter, limit: PAGE_SIZE, offset });
+
+  // Reset accumulated leads when filter changes
+  useEffect(() => {
+    setOffset(0);
+    setAccumulated([]);
+  }, [filter.status, filter.minScore, filter.maxScore]);
+
+  // Append fetched leads to accumulated list
+  useEffect(() => {
+    if (!freshLeads) return;
+    if (offset === 0) {
+      setAccumulated(freshLeads);
+    } else {
+      setAccumulated(prev => {
+        const existingIds = new Set(prev.map(l => l.id));
+        const newLeads = freshLeads.filter(l => !existingIds.has(l.id));
+        return [...prev, ...newLeads];
+      });
+    }
+    setLoadingMore(false);
+  }, [freshLeads, offset]);
+
+  const handleLoadMore = useCallback(() => {
+    setLoadingMore(true);
+    setOffset(prev => prev + PAGE_SIZE);
+  }, []);
+
+  const leads = accumulated;
+  const hasMore = freshLeads?.length === PAGE_SIZE;
+
   const approveMut = useApproveLead();
   const skipMut = useSkipLead();
   const convertMut = useConvertLead();
@@ -117,16 +156,26 @@ export default function CampaignDetailPage() {
         );
       })()}
 
+      {/* Analytics summary */}
+      {analytics && analytics.sent > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <AnalyticsStat label="Open Rate" value={`${analytics.rates.openRate}%`} icon={<Eye size={14} />} color="text-violet-400" />
+          <AnalyticsStat label="Click Rate" value={`${analytics.rates.clickRate}%`} icon={<MousePointerClick size={14} />} color="text-amber-400" />
+          <AnalyticsStat label="Reply Rate" value={`${analytics.rates.replyRate}%`} icon={<MessageCircle size={14} />} color="text-green-400" />
+          <AnalyticsStat label="Sent" value={String(analytics.sent)} icon={<Send size={14} />} color="text-cyan-400" />
+        </div>
+      )}
+
       {/* Section heading + bulk actions */}
       {(() => {
-        const sendableLeads = (leads ?? []).filter((l: any) => l.status === 'qualified' && l.email && l.qualification);
+        const sendableLeads = leads.filter((l: any) => l.status === 'qualified' && l.email && l.qualification);
         const sendableCount = sendableLeads.length;
 
         return (
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">
               {filter.status === 'qualified' ? 'Ready for Review' : filter.status ? `${filter.status} leads` : 'All Leads'}
-              <span className="text-gray-500 text-sm font-normal ml-2">({leads?.length ?? 0})</span>
+              <span className="text-gray-500 text-sm font-normal ml-2">({leads.length}{hasMore ? '+' : ''})</span>
             </h2>
             {sendableCount > 0 && (
               <div className="flex gap-2">
@@ -159,7 +208,7 @@ export default function CampaignDetailPage() {
 
       {/* Lead Cards */}
       <div className="space-y-3">
-        {leads && leads.length > 0 ? leads.map((lead: any) => {
+        {leads.length > 0 ? leads.map((lead: any) => {
           const isExpanded = expandedLead === lead.id;
           const isPreviewing = previewLead === lead.id;
           const enrichment = lead.enrichment;
@@ -178,7 +227,7 @@ export default function CampaignDetailPage() {
                   score != null ? 'bg-red-500/20 text-red-400' :
                   'bg-gray-700/20 text-gray-500'
                 }`}>
-                  {score ?? '—'}
+                  {score ?? '\u2014'}
                 </div>
 
                 {/* Info */}
@@ -308,7 +357,7 @@ export default function CampaignDetailPage() {
                     <div className="grid grid-cols-2 gap-2">
                       <InfoBox label="Website" value={lead.websiteUrl || 'Not found'} icon={<Globe size={12} />} />
                       <InfoBox label="Phone" value={lead.phone || 'Not found'} icon={<Phone size={12} />} />
-                      <InfoBox label="Rating" value={lead.googleRating ? `${lead.googleRating}★ (${lead.googleReviewCount} reviews)` : 'N/A'} />
+                      <InfoBox label="Rating" value={lead.googleRating ? `${lead.googleRating}\u2605 (${lead.googleReviewCount} reviews)` : 'N/A'} />
                       <InfoBox label="Emails Found" value={enrichment?.emailsFound?.length ? enrichment.emailsFound.join(', ') : 'None'} />
                     </div>
 
@@ -318,7 +367,7 @@ export default function CampaignDetailPage() {
                         <div className="space-y-1">
                           {painSignals.map((ps: any, i: number) => (
                             <div key={i} className="text-xs bg-red-500/10 border border-red-500/20 rounded-md px-3 py-1.5 text-red-300">
-                              <span className="font-semibold">{ps.signal}</span> ({ps.count}x) — &ldquo;{ps.example}&rdquo;
+                              <span className="font-semibold">{ps.signal}</span> ({ps.count}x) &mdash; &ldquo;{ps.example}&rdquo;
                             </div>
                           ))}
                         </div>
@@ -396,10 +445,40 @@ export default function CampaignDetailPage() {
           );
         }) : (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center text-gray-500">
-            {leads ? (filter.status === 'qualified' ? 'No leads waiting for review. Pipeline may still be processing.' : `No ${filter.status || ''} leads found.`) : 'Loading...'}
+            {leads !== undefined ? (filter.status === 'qualified' ? 'No leads waiting for review. Pipeline may still be processing.' : `No ${filter.status || ''} leads found.`) : 'Loading...'}
+          </div>
+        )}
+
+        {/* Load More button */}
+        {hasMore && (
+          <div className="flex justify-center pt-2">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore || isFetching}
+              className="flex items-center gap-2 rounded-lg border border-gray-700 px-6 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-gray-100 transition disabled:opacity-50"
+            >
+              {loadingMore || isFetching ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>Load More</>
+              )}
+            </button>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function AnalyticsStat({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-4 py-2.5">
+      <span className={color}>{icon}</span>
+      <span className="text-xs text-gray-400">{label}</span>
+      <span className="text-sm font-semibold ml-1">{value}</span>
     </div>
   );
 }

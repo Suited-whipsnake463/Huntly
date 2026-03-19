@@ -156,6 +156,81 @@ export default async function campaignRoutes(app: FastifyInstance) {
     },
   );
 
+  /* GET /campaigns/:id/analytics — campaign email & conversion analytics */
+  app.get<{ Params: IdParams }>(
+    '/campaigns/:id/analytics',
+    async (request, reply) => {
+      const { id: campaignId } = request.params;
+
+      const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+      if (!campaign) {
+        return reply.status(404).send({ error: 'Campaign not found' });
+      }
+
+      // Count emails by status
+      const emailCounts = await prisma.outreachEmail.groupBy({
+        by: ['status'],
+        where: { campaignId },
+        _count: { status: true },
+      });
+
+      const statusMap: Record<string, number> = {};
+      let total = 0;
+      for (const row of emailCounts) {
+        statusMap[row.status] = row._count.status;
+        total += row._count.status;
+      }
+
+      const sent = total - (statusMap['scheduled'] ?? 0);
+      const delivered = (statusMap['delivered'] ?? 0) + (statusMap['opened'] ?? 0) + (statusMap['clicked'] ?? 0);
+      const opened = (statusMap['opened'] ?? 0) + (statusMap['clicked'] ?? 0);
+      const clicked = statusMap['clicked'] ?? 0;
+      const bounced = statusMap['bounced'] ?? 0;
+
+      // Count replied + converted leads for this campaign
+      const leadCounts = await prisma.lead.groupBy({
+        by: ['status'],
+        where: { campaignId, status: { in: ['replied', 'converted'] } },
+        _count: { status: true },
+      });
+
+      const leadMap: Record<string, number> = {};
+      for (const row of leadCounts) {
+        leadMap[row.status] = row._count.status;
+      }
+
+      const replied = leadMap['replied'] ?? 0;
+      const converted = leadMap['converted'] ?? 0;
+
+      // Compute rates (avoid division by zero)
+      const deliveryRate = sent > 0 ? Math.round((delivered / sent) * 1000) / 10 : 0;
+      const openRate = delivered > 0 ? Math.round((opened / delivered) * 1000) / 10 : 0;
+      const clickRate = opened > 0 ? Math.round((clicked / opened) * 1000) / 10 : 0;
+      const bounceRate = sent > 0 ? Math.round((bounced / sent) * 1000) / 10 : 0;
+      const replyRate = delivered > 0 ? Math.round((replied / delivered) * 1000) / 10 : 0;
+      const conversionRate = delivered > 0 ? Math.round((converted / delivered) * 1000) / 10 : 0;
+
+      return reply.send({
+        total,
+        sent,
+        delivered,
+        opened,
+        clicked,
+        bounced,
+        replied,
+        converted,
+        rates: {
+          deliveryRate,
+          openRate,
+          clickRate,
+          bounceRate,
+          replyRate,
+          conversionRate,
+        },
+      });
+    },
+  );
+
   /* DELETE /campaigns/:id — delete campaign + all its leads, enrichments, qualifications, emails */
   app.delete<{ Params: IdParams }>(
     '/campaigns/:id',
