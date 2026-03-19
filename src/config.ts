@@ -13,7 +13,7 @@ export const env = cleanEnv(process.env, {
   SENDER_EMAIL: str({ default: 'hello@outreach.sigmaintel.io' }),
   SENDER_NAME: str({ default: 'Huntly' }),
   PHYSICAL_ADDRESS: str(),
-  BASE_URL: str({ default: 'http://localhost:3001' }),
+  BASE_URL: str({ default: 'http://localhost:3002' }),
   NODE_ENV: str({ choices: ['development', 'production', 'test'], default: 'development' }),
-  PORT: num({ default: 3001 }),
+  PORT: num({ default: 3002 }),
 });
