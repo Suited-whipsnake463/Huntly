@@ -28,6 +28,7 @@ interface CampaignLeadsQuery {
   maxScore?: string;
   limit?: string;
   offset?: string;
+  search?: string;
 }
 
 interface LeadIdParams {
@@ -52,6 +53,7 @@ export default async function leadRoutes(app: FastifyInstance) {
         maxScore,
         limit: limitStr,
         offset: offsetStr,
+        search,
       } = request.query;
 
       const limit = limitStr ? parseInt(limitStr, 10) : 50;
@@ -60,6 +62,10 @@ export default async function leadRoutes(app: FastifyInstance) {
       const where: Record<string, unknown> = { campaignId };
       if (status) {
         where.status = status;
+      }
+
+      if (search) {
+        where.businessName = { contains: search, mode: 'insensitive' };
       }
 
       // Score filtering via qualification relation
@@ -111,6 +117,10 @@ export default async function leadRoutes(app: FastifyInstance) {
 
       if (!lead.email) {
         return reply.status(400).send({ error: 'Lead has no email address' });
+      }
+
+      if (!env.EMAIL_ENABLED) {
+        return reply.status(403).send({ error: 'Email sending is disabled. Set EMAIL_ENABLED=true to enable.' });
       }
 
       const sendNow = request.query.sendNow === 'true';

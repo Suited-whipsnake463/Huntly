@@ -304,8 +304,9 @@ export async function sendDripDirect(
     return { status: 'failed', error: (err as Error).message };
   }
 
-  await outreachRepo.updateStatus(emailRecord.id, 'sending', {
+  await outreachRepo.updateStatus(emailRecord.id, 'delivered', {
     sentAt: new Date(),
+    deliveredAt: new Date(),
     resendMessageId,
   });
   await incrementSendCount();
@@ -351,6 +352,11 @@ export async function sendDripDirect(
 export const outreachWorker = new Worker<SendDripJobData | Record<string, never>>(
   'outreach',
   async (job) => {
+    if (!env.EMAIL_ENABLED) {
+      console.log(`[outreach] Email disabled, skipping job ${job.name}`);
+      return;
+    }
+
     /* ---------- process-scheduled ---------- */
     if (job.name === 'process-scheduled') {
       const due = await outreachRepo.findScheduledBefore(new Date());

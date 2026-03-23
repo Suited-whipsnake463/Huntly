@@ -28,6 +28,7 @@ export interface LeadParams {
   maxScore?: number;
   limit?: number;
   offset?: number;
+  search?: string;
 }
 
 export interface FunnelStats {
@@ -55,8 +56,53 @@ function buildQuery(params?: LeadParams): string {
   if (params.maxScore != null) sp.set('maxScore', String(params.maxScore));
   if (params.limit != null) sp.set('limit', String(params.limit));
   if (params.offset != null) sp.set('offset', String(params.offset));
+  if (params.search) sp.set('search', params.search);
   const q = sp.toString();
   return q ? `?${q}` : '';
+}
+
+export interface AppConfig {
+  emailEnabled: boolean;
+  aiProvider: string;
+  ollamaModel?: string;
+}
+
+export function useAppConfig() {
+  return useQuery({
+    queryKey: ['app-config'],
+    queryFn: () => api.get<AppConfig>('/config'),
+    staleTime: 60_000,
+  });
+}
+
+export interface OllamaModel {
+  name: string;
+  sizeGB: number;
+  modified: string;
+}
+
+export interface AiModelsResponse {
+  ollamaOnline: boolean;
+  models: OllamaModel[];
+}
+
+export function useAiModels() {
+  return useQuery({
+    queryKey: ['ai-models'],
+    queryFn: () => api.get<AiModelsResponse>('/ai/models'),
+    staleTime: 30_000,
+  });
+}
+
+export function useSetAiProvider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { provider: string; ollamaModel?: string }) =>
+      api.post('/ai/provider', body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['app-config'] });
+    },
+  });
 }
 
 export function useLeads(campaignId: string, params?: LeadParams) {

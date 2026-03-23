@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { env } from './config.js';
+import { aiConfig } from './lib/ai-config.js';
 
 // Import routes (default exports)
 import demoRoutes from './routes/demo.routes.js';
@@ -19,6 +20,44 @@ import { outreachWorker } from './workers/outreach.worker.js';
 const app = Fastify({ logger: true });
 
 await app.register(cors);
+
+// Public config endpoint (tells dashboard what features are enabled)
+app.get('/api/config', async () => ({
+  emailEnabled: env.EMAIL_ENABLED,
+  aiProvider: aiConfig.provider,
+  ollamaModel: aiConfig.provider === 'ollama' ? aiConfig.ollamaModel : undefined,
+}));
+
+// AI provider management
+app.get('/api/ai/models', async (_req, reply) => {
+  try {
+    const res = await fetch(`${aiConfig.ollamaUrl}/api/tags`);
+    if (!res.ok) throw new Error('Ollama not reachable');
+    const data = await res.json() as { models: Array<{ name: string; size: number; modified_at: string }> };
+    const models = data.models.map(m => ({
+      name: m.name,
+      sizeGB: +(m.size / 1_073_741_824).toFixed(1),
+      modified: m.modified_at,
+    }));
+    return reply.send({ ollamaOnline: true, models });
+  } catch {
+    return reply.send({ ollamaOnline: false, models: [] });
+  }
+});
+
+app.post<{ Body: { provider: string; ollamaModel?: string } }>(
+  '/api/ai/provider',
+  async (req, reply) => {
+    const { provider, ollamaModel } = req.body;
+    if (!['ollama', 'groq', 'openai'].includes(provider)) {
+      return reply.status(400).send({ error: 'Invalid provider' });
+    }
+    aiConfig.provider = provider as 'ollama' | 'groq' | 'openai';
+    if (ollamaModel) aiConfig.ollamaModel = ollamaModel;
+    console.log(`[ai] Provider switched to ${provider}${ollamaModel ? ` (${ollamaModel})` : ''}`);
+    return reply.send({ provider: aiConfig.provider, ollamaModel: aiConfig.ollamaModel });
+  },
+);
 
 // Public routes (no auth)
 await app.register(demoRoutes, { prefix: '/demo' });
